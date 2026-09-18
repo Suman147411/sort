@@ -1,0 +1,92 @@
+#include <iostream>
+#include <queue>
+#include <unordered_map>
+using namespace std;
+
+// Node of Huffman Tree
+struct Node {
+    char ch;
+    int freq;
+    Node *left, *right;
+
+    Node(char c, int f) {
+        ch = c;
+        freq = f;
+        left = right = nullptr;
+    }
+};
+
+// Compare nodes based on frequency
+struct Compare {
+    bool operator()(Node* a, Node* b) {
+        return a->freq > b->freq;
+    }
+};
+
+// Generate Huffman codes
+void generateCodes(Node* root, string code,
+                   unordered_map<char, string>& huffmanCode) {
+    if (root == nullptr)
+        return;
+
+    // Leaf node
+    if (root->left == nullptr && root->right == nullptr) {
+        huffmanCode[root->ch] = code;
+        return;
+    }
+
+    generateCodes(root->left, code + "0", huffmanCode);
+    generateCodes(root->right, code + "1", huffmanCode);
+}
+
+int main() {
+    string text = "hello huffman";
+
+    // Calculate frequency
+    unordered_map<char, int> freq;
+
+    for (char ch : text)
+        freq[ch]++;
+
+    // Min-heap
+    priority_queue<Node*, vector<Node*>, Compare> pq;
+
+    // Create nodes
+    for (auto pair : freq) {
+        pq.push(new Node(pair.first, pair.second));
+    }
+
+    // Build Huffman Tree
+    while (pq.size() > 1) {
+        Node* left = pq.top();
+        pq.pop();
+
+        Node* right = pq.top();
+        pq.pop();
+
+        Node* newNode =
+            new Node('\0', left->freq + right->freq);
+
+        newNode->left = left;
+        newNode->right = right;
+
+        pq.push(newNode);
+    }
+
+    // Root of Huffman Tree
+    Node* root = pq.top();
+
+    // Generate codes
+    unordered_map<char, string> huffmanCode;
+    generateCodes(root, "", huffmanCode);
+
+    // Print codes
+    cout << "Huffman Codes:\n";
+
+    for (auto pair : huffmanCode) {
+        cout << pair.first << " : "
+             << pair.second << endl;
+    }
+
+    return 0;
+}
